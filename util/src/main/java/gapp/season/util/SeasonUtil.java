@@ -5,6 +5,8 @@ import android.app.Application;
 import java.util.ArrayList;
 import java.util.List;
 
+import gapp.season.util.app.ActivityHolder;
+import gapp.season.util.app.AppUtil;
 import gapp.season.util.log.LogUtil;
 import gapp.season.util.net.NetworkUtil;
 import gapp.season.util.tips.ToastUtil;
@@ -17,6 +19,8 @@ public class SeasonUtil {
         ToastUtil.init(application);
         NetworkUtil.init(application);
         initLogUtil(application, isDebug);
+        ActivityHolder.setLogShow(isDebug);
+        AppUtil.init(application);
     }
 
     private static void initLogUtil(Application application, boolean isDebug) {
