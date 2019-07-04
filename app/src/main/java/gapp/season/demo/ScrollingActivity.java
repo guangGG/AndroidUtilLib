@@ -1,22 +1,27 @@
 package gapp.season.demo;
 
+import android.graphics.Color;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-
-import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
+import gapp.season.util.app.ActivityHolder;
+import gapp.season.util.log.LogUtil;
+import gapp.season.util.sys.DeviceUtil;
+import gapp.season.util.sys.ScreenUtil;
 
 public class ScrollingActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ActivityHolder.getInstance().addActivity(this);
         setContentView(R.layout.activity_scrolling);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -29,6 +34,12 @@ public class ScrollingActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        ActivityHolder.getInstance().removeActivity(this);
+        super.onDestroy();
     }
 
     @Override
@@ -47,6 +58,12 @@ public class ScrollingActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            LogUtil.d(String.format("型号：%s，版本：%s，AndroidId：%s，IMEI：%s，INSI：%s，",
+                    DeviceUtil.getOsModel(), DeviceUtil.getOsVersion(), DeviceUtil.getAndroidId(getApplicationContext()),
+                    DeviceUtil.getIMEI(getApplicationContext()), DeviceUtil.getIMSI(getApplicationContext())));
+            int c = (int) (Math.random() * 2);
+            int colorInt = c > 0 ? Color.MAGENTA : Color.CYAN;
+            ScreenUtil.setStatusBarColor(ScrollingActivity.this, colorInt, true);
             return true;
         }
         return super.onOptionsItemSelected(item);
