@@ -191,12 +191,15 @@ public class FileUtil {
         return "";
     }
 
+    /**
+     * 获取不带后缀的文件名
+     */
     public static String getFileNameWithoutExtName(String pathName) {
         String fileName = getFileName(pathName);
         if (fileName != null && fileName.length() > 0) {
             int dot = fileName.lastIndexOf('.');
             if ((dot > 0) && (dot < (fileName.length() - 1))) {
-                return fileName.substring(0, dot - 1);
+                return fileName.substring(0, dot);
             } else {
                 return "";
             }
