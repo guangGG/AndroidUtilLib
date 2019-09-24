@@ -1,48 +1,67 @@
 package gapp.season.util.file;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.Rect;
-import android.media.ExifInterface;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
+import android.util.Base64;
+import android.util.LruCache;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.exifinterface.media.ExifInterface;
+
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.lang.ref.SoftReference;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
 
-import androidx.annotation.NonNull;
+import gapp.season.encryptlib.hash.HashUtil;
 
 /**
  * 图片处理工具类
  */
 public class ImgUtil {
-    public static Bitmap getBitmapFromFile(String path) {
-        FileInputStream fis = null;
+    public static Bitmap getBitmap(Context context, int resId) {
+        return BitmapFactory.decodeResource(context.getResources(), resId);
+    }
+
+    public static Drawable getDrawable(Bitmap bmp) {
+        return new BitmapDrawable(bmp);
+    }
+
+    public static Bitmap getBitmap(String filePath) {
+        FileInputStream fis;
         try {
-            fis = new FileInputStream(path);
-            if (fis != null) {
-                BitmapFactory.Options options = new BitmapFactory.Options();
-                options.inSampleSize = 2;
-                return BitmapFactory.decodeStream(fis, null, options);
-            }
+            fis = new FileInputStream(filePath);
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inSampleSize = 2;
+            Bitmap bitmap = BitmapFactory.decodeStream(fis, null, options);
+            fis.close();
+            return bitmap;
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public static String compressBitmap(@NonNull Bitmap bm, @NonNull File f) {
         if (f.exists()) {
             f.delete();
         }
-
         if (null != f.getParentFile() && !f.getParentFile().exists()) {
             f.mkdirs();
         }
@@ -382,5 +401,103 @@ public class ImgUtil {
             }
         }
         return 0;
+    }
+
+
+    /**
+     * bitmap转为base64，quality取0-100，format默认为jpg格式
+     */
+    public static String bitmapToBase64(Bitmap bitmap, int quality, @Nullable Bitmap.CompressFormat format) {
+        String result = "";
+        ByteArrayOutputStream baos = null;
+        try {
+            if (bitmap != null) {
+                baos = new ByteArrayOutputStream();
+                bitmap.compress(format == null ? Bitmap.CompressFormat.JPEG : format, quality, baos);
+                baos.flush();
+                baos.close();
+
+                byte[] bitmapBytes = baos.toByteArray();
+                result = Base64.encodeToString(bitmapBytes, Base64.DEFAULT);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (baos != null) {
+                    baos.flush();
+                    baos.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+        return result;
+    }
+
+    private static LruCache<String, Bitmap> sMemoryCache = null;
+    private static long sCacheSize = 0;
+
+    /**
+     * base64转为bitmap
+     */
+    public static Bitmap base64ToBitmap(String base64Data) {
+        try {
+            //移除前缀
+            if (base64Data != null && base64Data.matches("data:.*;base64,.*")) {
+                base64Data = base64Data.split("base64,")[1];
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        String key = HashUtil.md5(base64Data); //缓存的key
+        if (TextUtils.isEmpty(key)) return null;
+        if (sCacheSize == 0) {
+            // 获取到可用内存的最大值，使用内存超出这个值会引起OutOfMemory异常。
+            // LruCache通过构造函数传入缓存值，以KB为单位。
+            long maxMemory = Runtime.getRuntime().maxMemory() / 1024;
+            // 使用最大可用内存值的1/8作为缓存的大小。
+            sCacheSize = (maxMemory / 8);
+        }
+
+        if (sMemoryCache == null) {
+            sMemoryCache = new LruCache<String, Bitmap>((int) sCacheSize) {
+                @Override
+                protected int sizeOf(String key, Bitmap bitmap) {
+                    // 重写此方法来衡量每张图片的大小，默认返回图片数量
+                    return bitmap == null ? 0 : bitmap.getByteCount() / 1024;
+                }
+            };
+        }
+
+        Bitmap bitmap = null;
+        byte[] imgByte;
+        InputStream inputStream = null;
+        try {
+            bitmap = sMemoryCache.get(key);
+            if (bitmap == null) {
+                imgByte = Base64.decode(base64Data, Base64.DEFAULT);
+                BitmapFactory.Options option = new BitmapFactory.Options();
+                option.inSampleSize = 2;
+                option.inTempStorage = new byte[5 * 1024 * 1024];
+                inputStream = new ByteArrayInputStream(imgByte);
+                SoftReference<Bitmap> softReference = new SoftReference<>(BitmapFactory.decodeStream(inputStream, null, option));
+                bitmap = softReference.get();
+                softReference.clear();
+                if (bitmap != null) sMemoryCache.put(key, bitmap);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (inputStream != null) inputStream.close();
+                System.gc();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return bitmap;
     }
 }

@@ -9,14 +9,18 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
-
-import java.util.List;
+import android.text.TextUtils;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.ColorRes;
 import androidx.annotation.DimenRes;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.StringRes;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.util.List;
 
 public final class AppUtil {
     private static Application sApplication;
@@ -46,10 +50,16 @@ public final class AppUtil {
         return sApplication.getResources().getDrawable(id);
     }
 
+    /**
+     * 退出应用
+     */
     public static void closeApp() {
         closeApp(0);
     }
 
+    /**
+     * 延时退出应用
+     */
     public static void closeApp(long delayMillis) {
         ActivityHolder.getInstance().finishAllActivity();
         if (delayMillis > 0) {
@@ -65,35 +75,65 @@ public final class AppUtil {
         }
     }
 
+    /**
+     * 重启应用
+     */
     public static void restartApp() {
-        ActivityHolder.getInstance().finishAllActivity();
         Intent intent = sApplication.getPackageManager().getLaunchIntentForPackage(sApplication.getPackageName());
         if (intent != null) {
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
             sApplication.startActivity(intent);
         }
     }
 
-    public static void openInBrowser(Context context, String url) {
-        Uri uri = Uri.parse(url);
-        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-        if (intent.resolveActivity(context.getPackageManager()) != null) {
-            context.startActivity(intent);
+    /**
+     * 转到拨号界面-向指定电话拨号
+     */
+    public static boolean openTelDial(String phoneNum) {
+        return openTelDial(Uri.parse("tel:" + phoneNum));
+    }
+
+    /**
+     * 转到拨号界面-向指定电话拨号
+     */
+    public static boolean openTelDial(Uri uri) {
+        Intent intent = new Intent(Intent.ACTION_DIAL, uri);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        if (intent.resolveActivity(sApplication.getPackageManager()) != null) {
+            sApplication.startActivity(intent);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 手机浏览器打开指定url
+     */
+    public static void openInBrowser(String url) {
+        if (!TextUtils.isEmpty(url)) {
+            Uri uri = Uri.parse(url);
+            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+            if (intent.resolveActivity(sApplication.getPackageManager()) != null) {
+                sApplication.startActivity(intent);
+            }
         }
     }
 
-    public static void openInAppStore(Context context) {
-        final String appPackageName = context.getPackageName();
-        final PackageManager packageManager = context.getPackageManager();
+    /**
+     * 应用市场中转到当前应用
+     */
+    public static void openInAppStore() {
+        final String appPackageName = sApplication.getPackageName();
+        final PackageManager packageManager = sApplication.getPackageManager();
         Intent intent = new Intent(Intent.ACTION_VIEW,
                 Uri.parse("market://details?id=" + appPackageName));
         if (intent.resolveActivity(packageManager) != null) {
-            context.startActivity(intent);
+            sApplication.startActivity(intent);
         } else {
             intent = new Intent(Intent.ACTION_VIEW,
                     Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName));
             if (intent.resolveActivity(packageManager) != null) {
-                context.startActivity(intent);
+                sApplication.startActivity(intent);
             }
         }
     }
@@ -101,8 +141,8 @@ public final class AppUtil {
     /**
      * 判断应用是否在运行中
      */
-    public static boolean isAppRunning(Context context, String packageName) {
-        ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+    public static boolean isAppRunning(String packageName) {
+        ActivityManager activityManager = (ActivityManager) sApplication.getSystemService(Context.ACTIVITY_SERVICE);
         List<ActivityManager.RunningAppProcessInfo> appProcesses = activityManager.getRunningAppProcesses();
         for (ActivityManager.RunningAppProcessInfo appProcess : appProcesses) {
             if (appProcess.processName.equals(packageName)) {
@@ -113,8 +153,9 @@ public final class AppUtil {
     }
 
     /**
-     * 获取当前进程名
+     * 获取当前进程名(已过期，请使用getProcessName方法代替)
      */
+    @Deprecated
     public static String getCurrentProcessName(Context context) {
         int pid = android.os.Process.myPid();
         String processName = "";
@@ -125,5 +166,34 @@ public final class AppUtil {
             }
         }
         return processName;
+    }
+
+    private static String sProcessName = "";
+
+    /**
+     * 获取当前进程名
+     */
+    public static String getProcessName() {
+        if (TextUtils.isEmpty(sProcessName)) {
+            BufferedReader reader = null;
+            try {
+                File file = new File("/proc/" + android.os.Process.myPid() + "/" + "cmdline");
+                reader = new BufferedReader(new FileReader(file));
+                String processName = reader.readLine();
+                if (!TextUtils.isEmpty(processName)) {
+                    sProcessName = processName.trim();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (reader != null) reader.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }
+        return sProcessName;
     }
 }
