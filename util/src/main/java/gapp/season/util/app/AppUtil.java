@@ -81,7 +81,9 @@ public final class AppUtil {
     public static void restartApp() {
         Intent intent = sApplication.getPackageManager().getLaunchIntentForPackage(sApplication.getPackageName());
         if (intent != null) {
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            //Calling startActivity() from outside of an Activity  context requires the FLAG_ACTIVITY_NEW_TASK flag
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             sApplication.startActivity(intent);
         }
     }
@@ -97,11 +99,15 @@ public final class AppUtil {
      * 转到拨号界面-向指定电话拨号
      */
     public static boolean openTelDial(Uri uri) {
-        Intent intent = new Intent(Intent.ACTION_DIAL, uri);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        if (intent.resolveActivity(sApplication.getPackageManager()) != null) {
-            sApplication.startActivity(intent);
-            return true;
+        try {
+            Intent intent = new Intent(Intent.ACTION_DIAL, uri);
+            if (intent.resolveActivity(sApplication.getPackageManager()) != null) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                sApplication.startActivity(intent);
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return false;
     }
@@ -110,12 +116,17 @@ public final class AppUtil {
      * 手机浏览器打开指定url
      */
     public static void openInBrowser(String url) {
-        if (!TextUtils.isEmpty(url)) {
-            Uri uri = Uri.parse(url);
-            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-            if (intent.resolveActivity(sApplication.getPackageManager()) != null) {
-                sApplication.startActivity(intent);
+        try {
+            if (!TextUtils.isEmpty(url)) {
+                Uri uri = Uri.parse(url);
+                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                if (intent.resolveActivity(sApplication.getPackageManager()) != null) {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    sApplication.startActivity(intent);
+                }
             }
+        } catch (Exception e) { //url不正确时会抛出FileUriExposedException
+            e.printStackTrace();
         }
     }
 
@@ -123,18 +134,24 @@ public final class AppUtil {
      * 应用市场中转到当前应用
      */
     public static void openInAppStore() {
-        final String appPackageName = sApplication.getPackageName();
-        final PackageManager packageManager = sApplication.getPackageManager();
-        Intent intent = new Intent(Intent.ACTION_VIEW,
-                Uri.parse("market://details?id=" + appPackageName));
-        if (intent.resolveActivity(packageManager) != null) {
-            sApplication.startActivity(intent);
-        } else {
-            intent = new Intent(Intent.ACTION_VIEW,
-                    Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName));
+        try {
+            final String appPackageName = sApplication.getPackageName();
+            final PackageManager packageManager = sApplication.getPackageManager();
+            Intent intent = new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("market://details?id=" + appPackageName));
             if (intent.resolveActivity(packageManager) != null) {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 sApplication.startActivity(intent);
+            } else {
+                intent = new Intent(Intent.ACTION_VIEW,
+                        Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName));
+                if (intent.resolveActivity(packageManager) != null) {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    sApplication.startActivity(intent);
+                }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
