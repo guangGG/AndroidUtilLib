@@ -1,5 +1,10 @@
 package gapp.season.util.file;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.os.Environment;
+import android.os.StatFs;
+import android.os.storage.StorageManager;
 import android.text.TextUtils;
 
 import java.io.BufferedOutputStream;
@@ -17,7 +22,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.RandomAccessFile;
+import java.lang.reflect.Method;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.List;
 
 import gapp.season.encryptlib.code.HexUtil;
@@ -603,5 +610,39 @@ public class FileUtil {
         randomAccessFile.seek(position);
         int length = randomAccessFile.read(buffer);
         messageDigest.update(buffer, 0, length);
+    }
+
+    /**
+     * 获取手机全部的存储卡列表
+     */
+    public static List<String> getSdCards(Context context) {
+        List<String> pathsList = new ArrayList<>();
+        // API在9以上，引入了StorageManager存储管理器
+        StorageManager storageManager = (StorageManager) context.getSystemService(Context.STORAGE_SERVICE);
+        try {
+            @SuppressLint("DiscouragedPrivateApi")
+            Method method = StorageManager.class.getDeclaredMethod("getVolumePaths");
+            method.setAccessible(true);
+            Object result = method.invoke(storageManager);
+            if (result instanceof String[]) {
+                String[] pathes = (String[]) result;
+                StatFs statFs;
+                for (String path : pathes) {
+                    if (!TextUtils.isEmpty(path) && new File(path).exists()) {
+                        statFs = new StatFs(path);
+                        if (statFs.getBlockCount() * statFs.getBlockSize() != 0) {
+                            pathsList.add(path);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            File externalFolder = Environment.getExternalStorageDirectory();
+            if (externalFolder != null) {
+                pathsList.add(externalFolder.getAbsolutePath());
+            }
+        }
+        return pathsList;
     }
 }

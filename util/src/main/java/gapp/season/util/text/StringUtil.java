@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import gapp.season.util.task.OnTaskValue;
+
 public class StringUtil {
     /**
      * 按照指定的编码表比较两个字符串的顺序
@@ -123,7 +125,7 @@ public class StringUtil {
      * @param listener 点击高亮显示的文本的回调
      */
     @SuppressLint("NewApi")
-    public static SpannableString toClickableSpannableString(String string, Pattern pattern, final View.OnClickListener listener) {
+    public static SpannableString toClickableSpannableString(String string, Pattern pattern, final OnTaskValue<String> listener) {
         if (pattern == null) {
             pattern = Patterns.WEB_URL;
         }
@@ -134,8 +136,7 @@ public class StringUtil {
             ss.setSpan(new ClickableSpan() {
                 @Override
                 public void onClick(View widget) {
-                    widget.setTag(str);
-                    listener.onClick(widget);
+                    if (listener != null) listener.onTaskDone(str);
                 }
             }, m.start(), m.end(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
