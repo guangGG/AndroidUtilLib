@@ -6,11 +6,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import gapp.season.util.app.ActivityHolder;
 import gapp.season.util.log.LogUtil;
 import gapp.season.util.sys.DeviceUtil;
@@ -58,9 +59,10 @@ public class ScrollingActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            LogUtil.d(String.format("型号：%s，版本：%s，AndroidId：%s，IMEI：%s，INSI：%s，",
+            LogUtil.d(String.format("型号：%s，版本：%s，AndroidId：%s，IMEI：%s，INSI：%s，wifi-ip:%s",
                     DeviceUtil.getOsModel(), DeviceUtil.getOsVersion(), DeviceUtil.getAndroidId(getApplicationContext()),
-                    DeviceUtil.getIMEI(getApplicationContext()), DeviceUtil.getIMSI(getApplicationContext())));
+                    DeviceUtil.getIMEI(getApplicationContext()), DeviceUtil.getIMSI(getApplicationContext()),
+                    DeviceUtil.getWifiIp(getApplicationContext())));
             int c = (int) (Math.random() * 2);
             int colorInt = c > 0 ? Color.MAGENTA : Color.CYAN;
             ScreenUtil.setStatusBarColor(ScrollingActivity.this, colorInt, true);

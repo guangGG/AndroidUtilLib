@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import gapp.season.encryptlib.code.ByteUtil;
 import gapp.season.encryptlib.code.HexUtil;
 
 @SuppressLint({"HardwareIds", "MissingPermission"})
@@ -108,13 +109,7 @@ public class DeviceUtil {
         try {
             WifiManager wifi = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
             WifiInfo info = wifi.getConnectionInfo();
-            int ipInt = info.getIpAddress();
-            byte[] src = new byte[4];
-            src[3] = (byte) ((ipInt >> 24) & 0xFF);
-            src[2] = (byte) ((ipInt >> 16) & 0xFF);
-            src[1] = (byte) ((ipInt >> 8) & 0xFF);
-            src[0] = (byte) (ipInt & 0xFF);
-            return InetAddress.getByAddress(src).getHostAddress();
+            return ByteUtil.intToIp(info.getIpAddress());
         } catch (Exception e) {
             e.printStackTrace();
         }
