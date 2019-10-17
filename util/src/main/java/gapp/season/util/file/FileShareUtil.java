@@ -11,11 +11,12 @@ import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 
+import androidx.core.content.FileProvider;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-
-import androidx.core.content.FileProvider;
+import java.util.List;
 
 public class FileShareUtil {
     public static boolean shareFileWithEmail(File file, Context context, String subject, String titleTips) {
@@ -103,6 +104,15 @@ public class FileShareUtil {
                 final String type = split[0];
                 if ("primary".equalsIgnoreCase(type)) {
                     return Environment.getExternalStorageDirectory() + "/" + split[1];
+                } else if ("raw".equalsIgnoreCase(type)) {
+                    return split[1];
+                } else {
+                    List<String> list = FileUtil.getSdCards(context);
+                    for (String path : list) {
+                        if (path.contains(type)) {
+                            return path + "/" + split[1];
+                        }
+                    }
                 }
             } else if (isDownloadsDocument(uri)) {
                 // DownloadsProvider
