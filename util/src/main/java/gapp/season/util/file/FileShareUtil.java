@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.os.StrictMode;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 
@@ -19,6 +20,17 @@ import java.io.InputStream;
 import java.util.List;
 
 public class FileShareUtil {
+    /**
+     * 分享文件前必须执行本代码，防止在高版本系统报错FileUriExposedException
+     */
+    public static void allowFileUriExposure() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+            StrictMode.setVmPolicy(builder.build());
+            builder.detectFileUriExposure();
+        }
+    }
+
     public static boolean shareFileWithEmail(File file, Context context, String subject, String titleTips) {
         try {
             Intent intent = new Intent(Intent.ACTION_SEND);
