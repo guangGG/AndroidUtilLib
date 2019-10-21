@@ -16,13 +16,17 @@ import gapp.season.util.app.ActivityHolder;
 import gapp.season.util.log.LogUtil;
 import gapp.season.util.sys.DeviceUtil;
 import gapp.season.util.sys.ScreenUtil;
+import gapp.season.util.tips.ToastUtil;
+import gapp.season.util.view.ThemeUtil;
 
 public class ScrollingActivity extends AppCompatActivity {
+    private ActivityHolder.ForegroundStatusListener mForegroundStatusListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ActivityHolder.getInstance().addActivity(this);
+        ThemeUtil.setTheme(this, R.style.AppTheme_NoActionBar);
+        //ThemeUtil.setFullScreenTheme(this, 0, 0xffcccccc);
         setContentView(R.layout.activity_scrolling);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -35,11 +39,20 @@ public class ScrollingActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+
+        LogUtil.d("ActivityHolder activitys = " + ActivityHolder.getInstance().getActivityList());
+        mForegroundStatusListener = new ActivityHolder.ForegroundStatusListener() {
+            @Override
+            public void onAppForegroundStatusChange(boolean isAppForeground) {
+                ToastUtil.showShort("App change to " + (isAppForeground ? "Foreground" : "Background"));
+            }
+        };
+        ActivityHolder.getInstance().registerForegroundStatusListener(mForegroundStatusListener);
     }
 
     @Override
     protected void onDestroy() {
-        ActivityHolder.getInstance().removeActivity(this);
+        ActivityHolder.getInstance().unregisterForegroundStatusListener(mForegroundStatusListener);
         super.onDestroy();
     }
 
@@ -65,7 +78,8 @@ public class ScrollingActivity extends AppCompatActivity {
                     DeviceUtil.getWifiIp(getApplicationContext())));
             int c = (int) (Math.random() * 2);
             int colorInt = c > 0 ? Color.MAGENTA : Color.CYAN;
-            ScreenUtil.setStatusBarColor(ScrollingActivity.this, colorInt, true);
+            boolean darkText = c <= 0;
+            ScreenUtil.setSysBarColor(ScrollingActivity.this, colorInt, darkText);
             return true;
         }
         return super.onOptionsItemSelected(item);

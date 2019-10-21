@@ -19,7 +19,7 @@ public class SeasonUtil {
         ToastUtil.init(application);
         NetworkUtil.init(application);
         initLogUtil(application, isDebug);
-        ActivityHolder.setLogShow(isDebug);
+        ActivityHolder.init(application, isDebug);
         AppUtil.init(application);
     }
 

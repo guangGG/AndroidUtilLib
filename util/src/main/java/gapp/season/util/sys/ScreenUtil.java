@@ -17,16 +17,16 @@ import android.view.ViewConfiguration;
 import android.view.Window;
 import android.view.WindowManager;
 
+import androidx.annotation.ColorInt;
+import androidx.annotation.ColorRes;
+import androidx.core.content.ContextCompat;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-
-import androidx.annotation.ColorInt;
-import androidx.annotation.ColorRes;
-import androidx.core.content.ContextCompat;
 
 /**
  * 获得屏幕相关的辅助类
@@ -218,6 +218,8 @@ public class ScreenUtil {
 
     /**
      * 设置状态栏颜色(api-23 6.0系统以上支持)
+     *
+     * @deprecated Use {@link #setSysBarColor(Activity, int, boolean)} instead.
      */
     public static void setStatusBarColor(Activity activity, @ColorInt int colorInt, boolean darkText) {
         Window window = activity.getWindow();
@@ -243,6 +245,30 @@ public class ScreenUtil {
                 flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
             }
             view.setSystemUiVisibility(flags);
+        }
+    }
+
+    /**
+     * 设置Activity状态栏/导航栏颜色(api-21 5.0系统以上支持)
+     */
+    public static void setSysBarColor(Activity activity, @ColorInt int colorInt, boolean darkText) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            //设置状态栏和NavigationBar导航栏的背景色
+            activity.getWindow().setNavigationBarColor(colorInt);
+            activity.getWindow().setStatusBarColor(colorInt);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                //隐藏NavigationBar和界面的分割线
+                activity.getWindow().setNavigationBarDividerColor(colorInt);
+            }
+            //设置状态栏和导航栏前景色是否高亮颜色(偏白色)
+            int uiFlags = View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+            if (darkText && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                uiFlags = (uiFlags | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+            }
+            if (darkText && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                uiFlags = (uiFlags | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+            }
+            activity.getWindow().getDecorView().setSystemUiVisibility(uiFlags);
         }
     }
 }

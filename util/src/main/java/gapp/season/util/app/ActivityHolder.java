@@ -1,6 +1,8 @@
 package gapp.season.util.app;
 
 import android.app.Activity;
+import android.app.Application;
+import android.os.Bundle;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -15,9 +17,12 @@ public class ActivityHolder {
     private static ActivityHolder sActivityHolder;
     private static boolean sLogShow = false;
     private List<Activity> mActivityList;
+    private int mForeActivityCount;
+    private List<ForegroundStatusListener> mListeners;
 
     private ActivityHolder() {
         mActivityList = new ArrayList<>();
+        mListeners = new ArrayList<>();
     }
 
     public static synchronized ActivityHolder getInstance() {
@@ -25,6 +30,60 @@ public class ActivityHolder {
             sActivityHolder = new ActivityHolder();
         }
         return sActivityHolder;
+    }
+
+    public static void init(Application application, boolean logShow) {
+        //API-14以上Application类增加了registerActivityLifecycleCallbacks来全局管理Activity生命周期
+        application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
+            @Override
+            public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+                getInstance().addActivity(activity);
+            }
+
+            @Override
+            public void onActivityStarted(Activity activity) {
+                if (getInstance().mForeActivityCount <= 0 && getInstance().mListeners != null) {
+                    //App切换到前台
+                    if (sLogShow)
+                        Log.d(TAG, "onAppForegroundStatusChange to Foreground");
+                    for (ForegroundStatusListener listener : getInstance().mListeners) {
+                        listener.onAppForegroundStatusChange(true);
+                    }
+                }
+                getInstance().mForeActivityCount++;
+            }
+
+            @Override
+            public void onActivityResumed(Activity activity) {
+            }
+
+            @Override
+            public void onActivityPaused(Activity activity) {
+            }
+
+            @Override
+            public void onActivityStopped(Activity activity) {
+                getInstance().mForeActivityCount--;
+                if (getInstance().mForeActivityCount <= 0 && getInstance().mListeners != null) {
+                    //App切换到后台
+                    if (sLogShow)
+                        Log.d(TAG, "onAppForegroundStatusChange to Background");
+                    for (ForegroundStatusListener listener : getInstance().mListeners) {
+                        listener.onAppForegroundStatusChange(false);
+                    }
+                }
+            }
+
+            @Override
+            public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+            }
+
+            @Override
+            public void onActivityDestroyed(Activity activity) {
+                getInstance().removeActivity(activity);
+            }
+        });
+        setLogShow(logShow);
     }
 
     public static void setLogShow(boolean logShow) {
@@ -40,6 +99,8 @@ public class ActivityHolder {
 
     /**
      * 添加activity (when activity onCreate)
+     *
+     * @deprecated 现改用ActivityLifecycleCallback全局注册回调，不需要手动添加删除Activity了
      */
     public void addActivity(Activity activity) {
         try {
@@ -61,6 +122,8 @@ public class ActivityHolder {
 
     /**
      * 移除activity (when activity onDestroy)
+     *
+     * @deprecated 现改用ActivityLifecycleCallback全局注册回调，不需要手动添加删除Activity了
      */
     public void removeActivity(Activity activity) {
         try {
@@ -138,5 +201,36 @@ public class ActivityHolder {
             }
         }
         return false;
+    }
+
+    /**
+     * 判断应用是否在前台运行
+     */
+    public boolean isAppForeground() {
+        return (mForeActivityCount > 0);
+    }
+
+    /**
+     * 添加app前后台切换的监听器
+     */
+    public void registerForegroundStatusListener(ForegroundStatusListener listener) {
+        if (mListeners == null) mListeners = new ArrayList<>();
+        mListeners.add(listener);
+    }
+
+    /**
+     * 移除app前后台切换的监听器
+     */
+    public void unregisterForegroundStatusListener(ForegroundStatusListener listener) {
+        if (mListeners != null) {
+            mListeners.remove(listener);
+        }
+    }
+
+    public interface ForegroundStatusListener {
+        /**
+         * 应用前后台切换时回调这个方法
+         */
+        void onAppForegroundStatusChange(boolean isAppForeground);
     }
 }

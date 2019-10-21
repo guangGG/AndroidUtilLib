@@ -6,7 +6,13 @@ import android.view.View;
 
 import gapp.season.util.sys.ScreenUtil;
 
+/**
+ * 手势控制工具类
+ */
 public class GestureDetectorUtil {
+    /**
+     * 获取View上下左右滑动的手势监听器
+     */
     public static GestureDetector flingInstance(final View view, final FlingCallBack callBack) {
         if (view == null || callBack == null) return null;
         final int flingMinDistance = ScreenUtil.dpToPx(20); //px
