@@ -7,6 +7,7 @@ import java.util.List;
 
 import gapp.season.util.app.ActivityHolder;
 import gapp.season.util.app.AppUtil;
+import gapp.season.util.file.MediaScanUtil;
 import gapp.season.util.log.LogUtil;
 import gapp.season.util.net.NetworkUtil;
 import gapp.season.util.tips.ToastUtil;
@@ -21,6 +22,7 @@ public class SeasonUtil {
         initLogUtil(application, isDebug);
         ActivityHolder.init(application, isDebug);
         AppUtil.init(application);
+        MediaScanUtil.init(application);
     }
 
     private static void initLogUtil(Application application, boolean isDebug) {
