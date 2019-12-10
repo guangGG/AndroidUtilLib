@@ -12,6 +12,7 @@ import androidx.appcompat.widget.Toolbar;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
+import gapp.season.demo.test.DecimalUtilTest;
 import gapp.season.util.app.ActivityHolder;
 import gapp.season.util.log.LogUtil;
 import gapp.season.util.sys.DeviceUtil;
@@ -37,6 +38,7 @@ public class ScrollingActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
+                DecimalUtilTest.doTest();
             }
         });
 
