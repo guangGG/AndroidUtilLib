@@ -13,7 +13,7 @@ buildscript {
 2.Add the dependency
 ```
 dependencies {
-    implementation 'gapp.season:SeasonUtil:0.0.3'
+    implementation 'gapp.season:SeasonUtil:0.0.4'
 }
 ```
 
@@ -31,6 +31,7 @@ FileShareUtil
 FileUtil
 ImgUtil
 ZipUtil
+MediaScanUtil
 
 LogUtil
 
@@ -55,6 +56,9 @@ DateUtil
 
 ToastUtil
 AlertUtil
+
+ThemeUtil
+GestureDetectorUtil
 
 SimpleTextWatcher
 SimpleOnPageChangeListener

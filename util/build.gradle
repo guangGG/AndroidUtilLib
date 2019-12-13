@@ -37,7 +37,7 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
     implementation 'gapp.season:EncryptLib:0.0.3'
-    implementation 'androidx.exifinterface:exifinterface:1.1.0-rc01'
+    implementation 'androidx.exifinterface:exifinterface:1.1.0'
 }
 
 //配置仓库信息
@@ -45,7 +45,7 @@ publish {
     userOrg = 'guanggg'
     groupId = 'gapp.season'
     artifactId = 'SeasonUtil'
-    publishVersion = '0.0.3'
+    publishVersion = '0.0.4'
     desc = 'android common utils library'
     website = 'https://github.com/guangGG/AndroidUtilLib'
 }
