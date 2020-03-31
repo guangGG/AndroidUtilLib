@@ -2,6 +2,7 @@ package gapp.season.util.file;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.os.Build;
 import android.os.Environment;
 import android.os.StatFs;
 import android.os.storage.StorageManager;
@@ -290,7 +291,7 @@ public class FileUtil {
             targetFile.getParentFile().mkdirs();
         }
         if (targetFile.exists()) {
-            targetFile.delete();
+            deleteAndScan(targetFile);
         }
         FileInputStream fis = null;
         FileOutputStream fos = null;
@@ -431,6 +432,8 @@ public class FileUtil {
         }
         in.close();
         out.close();
+        if (isMediaFile(newFile.getAbsolutePath()))
+            MediaScanUtil.scanFile(newFile.getAbsolutePath());
         return true;
     }
 
@@ -479,7 +482,7 @@ public class FileUtil {
 
         File file = new File(path);
         if (file.exists()) {
-            ret = file.delete();
+            ret = deleteAndScan(file);
         }
         return ret;
     }
@@ -503,7 +506,20 @@ public class FileUtil {
                 }
             }
         }
-        return file.delete();
+        return deleteAndScan(file);
+    }
+
+    //删除单个文件，如果文件是媒体类型则更新系统媒体库
+    private static boolean deleteAndScan(File file) {
+        if (file == null) return false;
+        String path = file.getAbsolutePath();
+        boolean isDelete = file.delete();
+        if (isDelete && isMediaFile(path)) MediaScanUtil.scanFile(path);
+        return isDelete;
+    }
+
+    private static boolean isMediaFile(String path) {
+        return FileTypeUtil.isMediaFile(path);
     }
 
     /**
@@ -644,5 +660,23 @@ public class FileUtil {
             }
         }
         return pathsList;
+    }
+
+    @SuppressLint("NewApi")
+    public static long getSdCardStorage(String path, boolean availableStorage) {
+        try {
+            StatFs statFs = new StatFs(path);
+            long blockSize = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) ? statFs.getBlockSizeLong() : statFs.getBlockSize();
+            if (availableStorage) {
+                long availableBlocks = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) ? statFs.getAvailableBlocksLong() : statFs.getAvailableBlocks();
+                return blockSize * availableBlocks;
+            } else {
+                long totalBlocks = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) ? statFs.getBlockCountLong() : statFs.getBlockCount();
+                return blockSize * totalBlocks;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 }
