@@ -13,7 +13,7 @@ buildscript {
 2.Add the dependency
 ```
 dependencies {
-    implementation 'gapp.season:SeasonUtil:0.0.4'
+    implementation 'gapp.season:SeasonUtil:0.0.5'
 }
 ```
 

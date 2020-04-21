@@ -45,7 +45,7 @@ publish {
     userOrg = 'guanggg'
     groupId = 'gapp.season'
     artifactId = 'SeasonUtil'
-    publishVersion = '0.0.4'
+    publishVersion = '0.0.5'
     desc = 'android common utils library'
     website = 'https://github.com/guangGG/AndroidUtilLib'
 }
