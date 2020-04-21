@@ -2,9 +2,6 @@ package gapp.season.util;
 
 import android.app.Application;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import gapp.season.util.app.ActivityHolder;
 import gapp.season.util.app.AppUtil;
 import gapp.season.util.file.MediaScanUtil;
@@ -31,11 +28,11 @@ public class SeasonUtil {
         if (isDebug) {
             LogUtil.setShowLogGrade(LogUtil.LOG_ALL);
         } else {
-            LogUtil.setShowLogGrade(LogUtil.LOG_D);
-            List<String> hideWords = new ArrayList<>();
+            LogUtil.setShowLogGrade(LogUtil.LOG_NONE);
+            /*List<String> hideWords = new ArrayList<>();
             hideWords.add("password");
             hideWords.add("sessionid");
-            LogUtil.setHideWords(hideWords);
+            LogUtil.setHideWords(hideWords);*/
         }
     }
 }

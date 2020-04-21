@@ -6,10 +6,13 @@ import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.ValueCallback;
 
-import java.util.List;
-
 import androidx.annotation.Nullable;
 
+import java.util.List;
+
+/**
+ * 向CookieManager同步Cookie，常用于向WebView设置Cookie (HTTP请求头："Cookie" , HTTP响应头："Set-Cookie")
+ */
 public class CookieUtil {
     public static void syncCookie(Context context, String domain, List<String> cookies) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {

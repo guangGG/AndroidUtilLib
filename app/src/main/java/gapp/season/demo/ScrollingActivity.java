@@ -12,9 +12,12 @@ import androidx.appcompat.widget.Toolbar;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.HashMap;
+
 import gapp.season.demo.test.DecimalUtilTest;
 import gapp.season.util.app.ActivityHolder;
 import gapp.season.util.log.LogUtil;
+import gapp.season.util.net.HttpSimpleUtil;
 import gapp.season.util.sys.DeviceUtil;
 import gapp.season.util.sys.ScreenUtil;
 import gapp.season.util.tips.ToastUtil;
@@ -37,7 +40,26 @@ public class ScrollingActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                        .setAction("Action", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                HashMap<String, String> headers = new HashMap<>();
+                                headers.put("key1", "value1");
+                                HttpSimpleUtil.doPostAsync("https://www.baidu.com", headers, "a=b&c=d", new HttpSimpleUtil.StringCallBack("UTF-8") {
+                                    @Override
+                                    public void onRequestSuccess(String result) {
+                                        LogUtil.i("doPostAsync success : " + result);
+                                        ToastUtil.showShort("doPostAsync success");
+                                    }
+
+                                    @Override
+                                    public void onRequestFailed(int errorCode) {
+                                        LogUtil.w("doPostAsync error : " + errorCode);
+                                        ToastUtil.showShort("doPostAsync error : " + errorCode);
+                                    }
+                                });
+                            }
+                        }).show();
                 DecimalUtilTest.doTest();
             }
         });

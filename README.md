@@ -32,11 +32,14 @@ FileUtil
 ImgUtil
 ZipUtil
 MediaScanUtil
+FileTypeUtil
+MimeTypes
 
 LogUtil
 
 NetworkUtil
 CookieUtil
+HttpSimpleUtil
 
 ClipboardUtil
 DeviceUtil

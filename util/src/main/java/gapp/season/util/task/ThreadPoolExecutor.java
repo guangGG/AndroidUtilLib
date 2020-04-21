@@ -3,6 +3,9 @@ package gapp.season.util.task;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * 一个全局的线程池Service，kotlin中推荐使用性能更好的协程处理异步操作
+ */
 public class ThreadPoolExecutor {
     private ExecutorService mExecutorService;
     private long mExecutedCount;
